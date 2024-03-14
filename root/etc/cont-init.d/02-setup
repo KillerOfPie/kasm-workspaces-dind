@@ -1,5 +1,72 @@
 #!/usr/bin/with-contenv bash
 
+# Check all ENV Variables
+
+var_KASM_PORT=$( [ -n "${KASM_PORT}" ] && echo "${rightPad ${KASM_PORT} 5}" || echo "UNSET" )
+var_KASM_VERSION=$( [ -n "${KASM_VERSION}" ] && echo " SET " || echo "UNSET" )
+var_KASM_ROLE=$( [ -n "${KASM_ROLE}" ] && echo " SET " || echo "UNSET" )
+var_DATABASE_HOSTNAME=$( [ -n "${DATABASE_HOSTNAME}" ] && echo " SET " || echo "UNSET" )
+var_DATABASE_NAME=$( [ -n "${DATABASE_NAME}" ] && echo " SET " || echo "UNSET" )
+var_DATABASE_USERNAME=$( [ -n "${DATABASE_USERNAME}" ] && echo " SET " || echo "UNSET" )
+var_DATABASE_PASSWORD=$( [ -n "${DATABASE_PASSWORD}" ] && echo " SET " || echo "UNSET" )
+var_REDIS_PASSWORD=$( [ -n "${REDIS_PASSWORD}" ] && echo " SET " || echo "UNSET" )
+var_KASM_MANAGER_HOSTNAME=$( [ -n "${KASM_MANAGER_HOSTNAME}" ] && echo " SET " || echo "UNSET" )
+var_KASM_MANAGER_TOKEN=$( [ -n "${KASM_MANAGER_TOKEN}" ] && echo " SET " || echo "UNSET" )
+var_AGENT_HOSTNAME=$( [ -n "${AGENT_HOSTNAME}" ] && echo " SET " || echo "UNSET" )
+var_KASM_APT_HOSTNAME=$( [ -n "${KASM_APT_HOSTNAME}" ] && echo " SET " || echo "UNSET" )
+var_KASM_SERVICE_REGISTRATION_TOKEN=$( [ -n "${KASM_SERVICE_REGISTRATION_TOKEN}" ] && echo " SET " || echo "UNSET" )
+var_KASM_CONNECTION_PROXY_HOSTNAME=$( [ -n "${KASM_CONNECTION_PROXY_HOSTNAME}" ] && echo " SET " || echo "UNSET" )
+var_KASM_SLIM_INSTALL=$( [ -n "${KASM_SLIM_INSTALL}" ] && echo "TRUE " || echo "FALSE" )
+
+
+# Verify ENV Args
+if [ ! -n "${KASM_ROLE}" ]; then
+  case "${KASM_ROLE}" in
+    "agent")
+      echo "ENV Variables for AGENT role:"
+      echo ${formatEnv 'KASM_MANAGER_HOSTNAME' ${var_KASM_MANAGER_HOSTNAME} "Required" "The IP, hostname or FQDN of the Kasm Manager that is resolvable and reachable by the Agent."}
+      echo ${formatEnv 'KASM_MANAGER_TOKEN' ${var_KASM_MANAGER_TOKEN} "Required" "The manger token generated during the db install. This is used for authentication by the Agent."}
+      echo ${formatEnv 'AGENT_HOSTNAME' ${var_AGENT_HOSTNAME} "Required" "The IP, hostname or FQDN of the Agent that is resolvable and reachable by the Kasm Manager."}
+      echo "\n"
+      checkEnv KASM_MANAGER_HOSTNAME KASM_MANAGER_TOKEN AGENT_HOSTNAME
+    ;;
+    "app")
+      echo "ENV Variables for APP role:"
+      echo ${formatEnv 'DATABASE_HOSTNAME' ${var_DATABASE_HOSTNAME} "Required" "The IP, hostname or FQDN of the Database Server that is resolvable and reachable by the Web App server."}
+      echo ${formatEnv 'DATABASE_PASSWORD' ${var_DATABASE_PASSWORD} "Required" "The database password generated during the installation of the database."}
+      echo ${formatEnv 'REDIS_PASSWORD ' ${var_REDIS_PASSWORD} "Required" "The Redis password generated during the installation of the database."}
+      echo ${formatEnv 'DATABASE_USERNAME' ${var_DATABASE_USERNAME} "Optional" "The database username if using a custom one"}
+      echo ${formatEnv 'DATABASE_NAME' ${var_DATABASE_NAME} "Optional" "The database name if using a custom one."}
+      echo "\n"
+      checkEnv DATABASE_HOSTNAME DATABASE_PASSWORD REDIS_PASSWORD
+    ;;
+    "db")
+      echo "ENV Variables for DB role:"
+      echo ${formatEnv 'DATABASE_USERNAME' ${var_DATABASE_USERNAME} "Optional" "The database username if using a custom one"}
+      echo ${formatEnv 'DATABASE_NAME' ${var_DATABASE_NAME} "Optional" "The database name if using a custom one."}
+      echo "\n"
+      echo "No ENV variables required"
+    ;;
+    "guac")
+      echo "ENV Variables for GUAC role:"
+      echo ${formatEnv 'MANAGER_HOSTNAME' ${var_KASM_MANAGER_HOSTNAME} "Required" "The IP, hostname or FQDN of the Web App Server that is resolvable and reachable by the Agent server."}
+      echo ${formatEnv 'SERVICE_REGISTRATION_TOKEN' ${var_KASM_SERVICE_REGISTRATION_TOKEN} "Required" "The registration token generated during the db install. This is used to register the Connection Proxy with the system. The Service Registration Token (AKA Component Registration Token) can also be found in the global settings in the Kasm Admin UI."}
+      echo ${formatEnv 'CONNECTION_PROXY_HOSTNAME' ${var_KASM_CONNECTION_PROXY_HOSTNAME} "Required" "This IP, hostname, or FQDN of this Connection Proxy Server that is resolvable and reachable by the Web App Server. This value will be reported by the Connection Proxy Server during registration and used by other services to communicate with it."}
+      echo "\n"
+      checkEnv KASM_MANAGER_HOSTNAME KASM_SERVICE_REGISTRATION_TOKEN KASM_CONNECTION_PROXY_HOSTNAME
+    ;;
+    "proxy")
+      echo "ENV Variables for PROXY role:"
+      echo ${formatEnv 'KASM_API_HOSTNAME' ${var_KASM_MANAGER_HOSTNAME} "Required" "The IP, hostname or FQDN of the Kasm Manager that is resolvable and reachable by the Connection Proxy."}
+    ;;
+    *)
+      echo "Invalid or missing KASM_ROLE: ${KASM_ROLE}"
+      echo "Installation set to single server mode"
+      KASM_ROLE=""
+    ;;
+  esac
+fi
+
 # Create directories
 if [ ! -d "/opt/docker" ]; then
   mkdir -p /opt/docker
@@ -15,3 +82,37 @@ if [ ! -f "/opt/kasm/certs/kasm_wizard.crt" ]; then
   mkdir -p /opt/kasm/certs
   openssl req -x509 -nodes -days 1825 -newkey rsa:2048 -keyout /opt/kasm/certs/kasm_wizard.key -out /opt/kasm/certs/kasm_wizard.crt -subj "/C=US/ST=VA/L=None/O=None/OU=DoFu/CN=$(hostname)/emailAddress=none@none.none"
 fi
+
+# Helper Functions
+
+# Right Pad
+# Usage: right_pad "string" "length"
+rightPad() {
+  local string="$1"
+  local length="$2"
+  local pad=$(printf '%*s' $((length - ${#string})))
+  echo "${string:0:length}${pad}"
+}
+
+# Format ENV Variables
+# Usage: formatEnv "var_name" "var_state" "var_reuired" "var_description"
+formatEnv() {
+  local var_name="$1"
+  local var_state="$2"
+  local var_required="$3"
+  local var_description="$4"
+  echo "${rightPad ${var_name} 21} | ${rightPad ${var_state} 5} | ${rightPad ${var_required} 8} | ${var_description}"
+}
+
+# Check if ENV is set
+# Usage: checkEnv "var_name"...
+checkEnv() {
+  var_names=("$@")
+  var_unset=""
+  for var_name in "${var_names[@]}"; do
+    [ -n "${!var_name}" ] && var_unset="$var_unset <$var_name>"
+  done
+  
+  [ -n "$var_unset" ] && echo "Some required variables are not set.\n  Unset ENV Vars: $var_unset" && exit 1
+  echo "All required ENV variables are set."
+}

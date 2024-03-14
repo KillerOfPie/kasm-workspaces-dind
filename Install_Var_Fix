@@ -1,0 +1,63 @@
+KASM_VERSION=$([ -n "${KASM_VERSION}" ] && echo "${KASM_VERSION}" || echo "1.15.1")
+KASM_INSTALL_BASE=$([ -n "${KASM_HOME}" ] && echo "${KASM_HOME}" || echo "/opt/kasm/${KASM_VERSION}")
+OFFLINE_INSTALL=$([ -n "${OFFLINE_INSTALL}" ] && echo "${OFFLINE_INSTALL}" || echo 'false')
+PULL_IMAGES=$([ -n "${PULL_IMAGES}" ] && echo "${PULL_IMAGES}" || echo 'false')
+DATABASE_HOSTNAME=$([ -n "${DATABASE_HOSTNAME}" ] && echo "${DATABASE_HOSTNAME}" || echo 'false')
+DB_PASSWORD=$([ -n "${DB_PASSWORD}" ] && echo "${DB_PASSWORD}" || echo 'false')
+DATABASE_PORT=$([ -n "${DATABASE_PORT}" ] && echo "${DATABASE_PORT}" || echo 5432)
+DATABASE_USER=$([ -n "${DATABASE_USER}" ] && echo "${DATABASE_USER}" || echo 'kasmapp')
+DATABASE_NAME=$([ -n "${DATABASE_NAME}" ] && echo "${DATABASE_NAME}" || echo 'kasm')
+REGISTRATION_TOKEN=$([ -n "${REGISTRATION_TOKEN}" ] && echo "${REGISTRATION_TOKEN}" || echo 'false')
+DEFAULT_GUAC_TOKEN=$([ -n "${DEFAULT_GUAC_TOKEN}" ] && echo "${DEFAULT_GUAC_TOKEN}" || echo 'false')
+DEFAULT_PROXY_LISTENING_PORT=$([ -n "${KASM_PORT}" ] && echo "${KASM_PORT}" || echo '443')
+API_SERVER_HOSTNAME=$([ -n "${API_SERVER_HOSTNAME}" ] && echo "${API_SERVER_HOSTNAME}" || echo 'false')
+ENABLE_LOSSLESS=$([ -n "${ENABLE_LOSSLESS}" ] && echo "${ENABLE_LOSSLESS}" || echo 'false')
+USE_ROLLING=$([ -n "${USE_ROLLING}" ] && echo "${USE_ROLLING}" || echo 'false')
+CHECK_DISK=$([ -n "${CHECK_DISK}" ] && echo "${CHECK_DISK}" || echo 'true')
+
+DO_DATABASE_INIT=$([ -n "${DO_DATABASE_INIT}" ] && echo "${DO_DATABASE_INIT}" || echo 'true')
+VERBOSE=$([ -n "${VERBOSE}" ] && echo "${VERBOSE}" || echo 'false')
+ACCEPT_EULA=$([ -n "${ACCEPT_EULA}" ] && echo "${ACCEPT_EULA}" || echo 'false')
+API_INSTALL=$([ -n "${API_INSTALL}" ] && echo "${API_INSTALL}" || echo 'false')
+PUBLIC_HOSTNAME=$([ -n "${PUBLIC_HOSTNAME}" ] && echo "${PUBLIC_HOSTNAME}" || echo 'false')
+DATABASE_SSL=$([ -n "${DATABASE_SSL}" ] && echo "${DATABASE_SSL}" || echo 'true')
+REDIS_HOSTNAME=$([ -n "${REDIS_HOSTNAME}" ] && echo "${REDIS_HOSTNAME}" || echo 'false')
+MANAGER_HOSTNAME=$([ -n "${MANAGER_HOSTNAME}" ] && echo "${MANAGER_HOSTNAME}" || echo 'false')
+SERVER_ZONE=$([ -n "${SERVER_ZONE}" ] && echo "${SERVER_ZONE}" || echo 'default')
+SERVER_ID=$([ -n "${SERVER_ID}" ] && echo "${SERVER_ID}" || echo 'false')
+PROVIDER=$([ -n "${PROVIDER}" ] && echo "${PROVIDER}" || echo 'false')
+bflag=$([ -n "${bflag}" ] && echo "${bflag}" || echo '')
+files=$([ -n "${files}" ] && echo "${files}" || echo '')
+START_SERVICES=$([ -n "${START_SERVICES}" ] && echo "${START_SERVICES}" || echo 'true')
+DEFAULT_DATABASE_PASSWORD=$([ -n "${DEFAULT_DATABASE_PASSWORD}" ] && echo "${DEFAULT_DATABASE_PASSWORD}" || echo "false")
+DEFAULT_REDIS_PASSWORD=$([ -n "${DEFAULT_REDIS_PASSWORD}" ] && echo "${DEFAULT_REDIS_PASSWORD}" || echo "false")
+DEFAULT_MANAGER_TOKEN=$([ -n "${DEFAULT_MANAGER_TOKEN}" ] && echo "${DEFAULT_MANAGER_TOKEN}" || echo "false")
+DEFAULT_ADMIN_PASSWORD=$([ -n "${DEFAULT_ADMIN_PASSWORD}" ] && echo "${DEFAULT_ADMIN_PASSWORD}" || echo "$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)")
+DEFAULT_USER_PASSWORD=$([ -n "${DEFAULT_USER_PASSWORD}" ] && echo "${DEFAULT_USER_PASSWORD}" || echo "$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)")
+ROLE=$([ -n "${ROLE}" ] && echo "${ROLE}" || echo "all")
+SEED_IMAGES=$([ -n "${SEED_IMAGES}" ] && echo "${SEED_IMAGES}" || echo "false")
+DATABASE_MASTER_USER=$([ -n "${DATABASE_MASTER_USER}" ] && echo "${DATABASE_MASTER_USER}" || echo 'postgres')
+SWAP_CHECK=$([ -n "${SWAP_CHECK}" ] && echo "${SWAP_CHECK}" || echo "true")
+SWAP_CREATE=$([ -n "${SWAP_CREATE}" ] && echo "${SWAP_CREATE}" || echo "false")
+ACTIVATION_FAILED=$([ -n "${ACTIVATION_FAILED}" ] && echo "${ACTIVATION_FAILED}" || echo "false")
+USE_SLIM=$([ -n "${USE_SLIM}" ] && echo "${USE_SLIM}" || echo "false")
+CHECK_PORTS=$([ -n "${CHECK_PORTS}" ] && echo "${CHECK_PORTS}" || echo "true")
+TEST_CONNECT=$([ -n "${TEST_CONNECT}" ] && echo "${TEST_CONNECT}" || echo "true")
+DEFAULT_REGISTRY_URL=$([ -n "${DEFAULT_REGISTRY_URL}" ] && echo "${DEFAULT_REGISTRY_URL}" || echo "false")
+SKIP_V4L2LOOPBACK=$([ -n "${SKIP_V4L2LOOPBACK}" ] && echo "${SKIP_V4L2LOOPBACK}" || echo "false")
+SKIP_CUSTOM_RCLONE=$([ -n "${SKIP_CUSTOM_RCLONE}" ] && echo "${SKIP_CUSTOM_RCLONE}" || echo "false")
+ROLLING_NGINX_TAG=$([ -n "${ROLLING_NGINX_TAG}" ] && echo "${ROLLING_NGINX_TAG}" || echo "1.25")
+FORCE_DEPS_INSTALL=$([ -n "${FORCE_DEPS_INSTALL}" ] && echo "${FORCE_DEPS_INSTALL}" || echo "false")
+
+GUAC_CLUSTER_SIZE=$(nproc)
+
+ARGS=("$@")
+
+SCRIPT_PATH="$(
+    cd "/kasm_release/"
+    pwd -P
+)"
+KASM_RELEASE="$(realpath $SCRIPT_PATH)"
+EULA_PATH=${KASM_RELEASE}/licenses/LICENSE.txt
+ARCH=$(uname -m | sed 's/aarch64/arm64/g' | sed 's/x86_64/amd64/g')
+DISK_SPACE=50000000000

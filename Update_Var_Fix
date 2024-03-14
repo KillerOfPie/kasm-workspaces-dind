@@ -1,0 +1,31 @@
+KASM_VERSION=$([ -n "${KASM_VERSION}" ] && echo "${KASM_VERSION}" || echo "1.15.1")
+KASM_INSTALL_BASE=$([ -n "${KASM_HOME}" ] && echo "${KASM_HOME}" || echo "/opt/kasm/${KASM_VERSION}")
+OFFLINE_INSTALL=$([ -n "${OFFLINE_INSTALL}" ] && echo "${OFFLINE_INSTALL}" || echo 'false')
+PULL_IMAGES=$([ -n "${PULL_IMAGES}" ] && echo "${PULL_IMAGES}" || echo 'false')
+PURGE_IMAGES=$([ -n "${PURGE_IMAGES}" ] && echo "${PURGE_IMAGES}" || echo 'false')
+DATABASE_HOSTNAME=$([ -n "${DATABASE_HOSTNAME}" ] && echo "${DATABASE_HOSTNAME}" || echo 'false')
+DB_PASSWORD=$([ -n "${DB_PASSWORD}" ] && echo "${DB_PASSWORD}" || echo 'false')
+DATABASE_PORT=$([ -n "${DATABASE_PORT}" ] && echo "${DATABASE_PORT}" || echo 5432)
+DATABASE_USER=$([ -n "${DATABASE_USER}" ] && echo "${DATABASE_USER}" || echo 'kasmapp')
+DATABASE_NAME=$([ -n "${DATABASE_NAME}" ] && echo "${DATABASE_NAME}" || echo 'kasm')
+REGISTRATION_TOKEN=$([ -n "${REGISTRATION_TOKEN}" ] && echo "${REGISTRATION_TOKEN}" || echo 'false')
+DEFAULT_GUAC_TOKEN=$([ -n "${DEFAULT_GUAC_TOKEN}" ] && echo "${DEFAULT_GUAC_TOKEN}" || echo 'false')
+DEFAULT_GUAC_ID=$([ -n "${DEFAULT_GUAC_ID}" ] && echo "${DEFAULT_GUAC_ID}" || echo '00000000-0000-0000-0000-000000000000')
+DEFAULT_PROXY_LISTENING_PORT=$([ -n "${KASM_PORT}" ] && echo "${KASM_PORT}" || echo '443')
+API_SERVER_HOSTNAME=$([ -n "${API_SERVER_HOSTNAME}" ] && echo "${API_SERVER_HOSTNAME}" || echo 'false')
+ENABLE_LOSSLESS=$([ -n "${ENABLE_LOSSLESS}" ] && echo "${ENABLE_LOSSLESS}" || echo 'false')
+USE_ROLLING=$([ -n "${USE_ROLLING}" ] && echo "${USE_ROLLING}" || echo 'false')
+CHECK_DISK=$([ -n "${CHECK_DISK}" ] && echo "${CHECK_DISK}" || echo 'true')
+
+ARGS=("$@")
+
+CURRENT_VERSION=$(readlink -f /opt/kasm/current | awk -F'/' '{print $4}')
+CURRENT_MAJOR_VERSION=$(echo ${CURRENT_VERSION} | awk -F'\\.' '{print $1}')
+CURRENT_MINOR_VERSION=$(echo ${CURRENT_VERSION} | awk -F'\\.' '{print $2}')
+SCRIPT_PATH="$(
+    cd "$(dirname "$0")"
+    pwd -P
+)"
+KASM_RELEASE="$(realpath $SCRIPT_PATH)"
+ARCH=$(uname -m)
+DISK_SPACE=50000000000
